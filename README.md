@@ -185,9 +185,3 @@ Open any `.sql` file in `queries/` using SQLTools in VS Code, connect to `olist_
 - Timestamp columns required explicit `parse_dates` in pandas during ETL — default string inference loses date arithmetic capability in PostgreSQL
 
 ---
-
-## Author
-
-**Utkarsh Tyagi**
-Data Analyst — Maruti Suzuki India Limited
-[GitHub](https://github.com/tyagiut1232002-spec)
