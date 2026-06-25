@@ -83,16 +83,25 @@ Full ERD: [`schema/olist_database_erd.png`](schema/olist_database_erd.png)
 ```
 olist-ecommerce-analytics/
 ├── data/                          # Raw CSVs (9 Olist dataset files)
+│   ├── olist_customers_dataset.csv
+│   ├── olist_geolocation_dataset.csv
+│   ├── olist_order_items_dataset.csv
+│   ├── olist_order_payments_dataset.csv
+│   ├── olist_order_reviews_dataset.csv
+│   ├── olist_orders_dataset.csv
+│   ├── olist_products_dataset.csv
+│   ├── olist_sellers_dataset.csv
+│   └── product_category_name_translation.csv
 ├── schema/
 │   └── olist_database_erd.png     # Entity relationship diagram
-├── queries/
+├── queries/                       # SQL analysis queries
 │   ├── explore_orders.sql         # Initial data exploration
 │   ├── revenue_analysis.sql       # Monthly trends, category revenue, AOV
 │   ├── delivery_performance.sql   # State-wise delivery times, on-time rates
 │   ├── seller_analysis.sql        # Seller revenue ranking, window functions
 │   ├── rfm_segmentation.sql       # Customer RFM scoring + segmentation
 │   └── payment_analysis.sql       # Payment method breakdown, instalments
-├── dashboard/                     # Exported CSVs for visualisation
+├── dashboard/                     # Exported result CSVs for visualisation
 │   ├── monthly_revenue.csv
 │   ├── category_wise_revenue.csv
 │   ├── delivery_performance.csv
@@ -102,6 +111,7 @@ olist-ecommerce-analytics/
 │   ├── payment_methods.csv
 │   ├── installments.csv
 │   └── seller_revenue.csv
+├── notebooks/                     # Jupyter notebooks (for exploratory analysis)
 ├── load_data.py                   # ETL script — CSV to PostgreSQL
 ├── .env                           # DB credentials (not tracked)
 ├── .gitignore
@@ -121,11 +131,13 @@ olist-ecommerce-analytics/
 
 **1. Clone the repo and open in Codespace**
 ```bash
-git clone https://github.com/tyagiut1232002-spec/olist-ecommerce-analytics
+git clone https://github.com/geeky-utkarsh-2307/olist-ecommerce-analytics
+cd olist-ecommerce-analytics
 ```
 
 **2. Install PostgreSQL**
 ```bash
+sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib -y
 sudo service postgresql start
 ```
@@ -144,24 +156,38 @@ ALTER SCHEMA public OWNER TO utkarsh_admin;
 
 **4. Configure credentials**
 ```bash
-cp .env.example .env
-# Edit .env with your DB credentials
+# Create .env file with your database credentials
+echo "DB_USER=utkarsh_admin" > .env
+echo "DB_PASSWORD=your_password" >> .env
+echo "DB_HOST=localhost" >> .env
+echo "DB_NAME=olist_sales_db" >> .env
 ```
 
 **5. Download dataset**
 ```bash
-kaggle datasets download -d olistbr/brazilian-ecommerce --path data/
-cd data && unzip brazilian-ecommerce.zip
+# Install Kaggle CLI if not already installed
+pip install kaggle
+
+# Download and extract dataset
+kaggle datasets download -d olistbr/brazilian-ecommerce -p data/
+cd data && unzip -o brazilian-ecommerce.zip && cd ..
 ```
 
-**6. Load data**
+**6. Install Python dependencies**
 ```bash
 pip install pandas sqlalchemy psycopg2-binary python-dotenv
+```
+
+**7. Load data into PostgreSQL**
+```bash
 python3 load_data.py
 ```
 
-**7. Run queries**
-Open any `.sql` file in `queries/` using SQLTools in VS Code, connect to `olist_sales_db`, and execute.
+**8. Run queries**
+Open any `.sql` file in `queries/` folder using SQLTools in VS Code:
+- Connect to `olist_sales_db` database
+- Execute the query to generate results
+- Export results as CSV to `dashboard/` folder for visualization
 
 ---
 
@@ -185,3 +211,103 @@ Open any `.sql` file in `queries/` using SQLTools in VS Code, connect to `olist_
 - Timestamp columns required explicit `parse_dates` in pandas during ETL — default string inference loses date arithmetic capability in PostgreSQL
 
 ---
+
+## Key Learnings & Recommendations
+
+### Business Strategy
+- **Focus on Retention**: With 97% of customers being one-time buyers, customer acquisition efficiency becomes critical. Implement loyalty programs and repeat purchase incentives.
+- **Address Late Deliveries**: The 9% late delivery rate (7,827 orders) directly impacts customer satisfaction and retention. Prioritize logistics optimization in remote/northern states.
+- **Payment Method Insights**: The dominance of credit cards + instalment payments suggests high-value customer segment. Optimize credit offerings and payment flexibility.
+
+### Data Engineering
+- Always use `customer_unique_id` for customer analytics, not `customer_id`.
+- Aggregate split payment orders by `order_id` before performing financial calculations.
+- Validate timestamp parsing during ETL to preserve date arithmetic capabilities.
+
+---
+
+## Results & Outputs
+
+### Generated Dashboards (in `dashboard/` folder)
+| File | Contains |
+|------|----------|
+| `monthly_revenue.csv` | Time-series revenue trends |
+| `category_wise_revenue.csv` | Category performance ranking |
+| `delivery_performance.csv` | On-time vs late delivery stats |
+| `state_wise_delivery_performance.csv` | Geographic delivery analysis |
+| `segmentation_summary.csv` | RFM segment distribution |
+| `raw_segmentation.csv` | Customer-level RFM scores |
+| `payment_methods.csv` | Payment method breakdown |
+| `installments.csv` | Instalment usage patterns |
+| `seller_revenue.csv` | Top-performing sellers |
+
+---
+
+## Tools & Dependencies
+
+### System Requirements
+- OS: Linux (Ubuntu 20.04+) / macOS / Windows (with WSL)
+- PostgreSQL: v14.0+
+- Python: 3.9+
+
+### Python Packages
+```
+pandas==1.5.3
+sqlalchemy==2.0.+
+psycopg2-binary==2.9.+
+python-dotenv==0.21.+
+```
+
+---
+
+## Troubleshooting
+
+### Connection Issues
+**Problem**: `psycopg2.OperationalError: could not connect to server`
+- Verify PostgreSQL is running: `sudo service postgresql status`
+- Check `.env` credentials match database setup
+- Confirm database `olist_sales_db` exists: `psql -l`
+
+### Data Loading Issues
+**Problem**: `FileNotFoundError` during `python3 load_data.py`
+- Ensure data files are downloaded to `data/` folder
+- Run from project root directory
+- Check file names match exactly in `load_data.py`
+
+### Query Execution Issues
+**Problem**: Column not found errors in SQL queries
+- Confirm data was successfully loaded: `SELECT * FROM information_schema.tables WHERE table_schema='public';`
+- Check table and column names are lowercase in queries
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request with:
+- Bug fixes or improvements to SQL queries
+- New analytical insights or queries
+- Documentation enhancements
+- ETL improvements
+
+---
+
+## License
+
+This project is open source and available under the **MIT License**. See the LICENSE file for details.
+
+---
+
+## Author
+
+**Utkarsh Tyagi**
+- GitHub: [@geeky-utkarsh-2307](https://github.com/geeky-utkarsh-2307)
+- Project: Brazilian E-Commerce Analytics with PostgreSQL
+
+---
+
+## References
+
+- **Dataset**: [Olist Brazilian E-Commerce — Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+- **SQL Documentation**: [PostgreSQL Official Docs](https://www.postgresql.org/docs/)
+- **Python ETL**: [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
+- **RFM Analysis**: [Customer Segmentation Strategy](https://en.wikipedia.org/wiki/RFM_(customer_value))
