@@ -291,20 +291,6 @@ Contributions are welcome! Please feel free to submit a Pull Request with:
 
 ---
 
-## License
-
-This project is open source and available under the **MIT License**. See the LICENSE file for details.
-
----
-
-## Author
-
-**Utkarsh Tyagi**
-- GitHub: [@geeky-utkarsh-2307](https://github.com/geeky-utkarsh-2307)
-- Project: Brazilian E-Commerce Analytics with PostgreSQL
-
----
-
 ## References
 
 - **Dataset**: [Olist Brazilian E-Commerce — Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
